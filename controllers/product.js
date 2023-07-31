@@ -6,9 +6,9 @@ const { sortBy } = require("lodash");
 
 exports.getProductById = (req, res, next, id) => {
   Product.findById(id)
-    .populate("category")
+    // .populate("category")
     .exec((err, product) => {
-      if (err) {
+      if (err || !product) {
         return res.status(400).json({
           error: "Product not found",
         });
@@ -78,19 +78,44 @@ exports.photo = (req, res, next) => {
 };
 
 //delete controllers
+// delete controllers
+// exports.deleteProduct = (req, res) => {
+//   let product = req.product;
+//   product.remove((err, product) => {
+//     if (err) {
+//       return res.status(400).json({
+//         error: "Failed to delete the product",
+//       });
+//     }
+//     res.json({
+//       message: "Deletion was a success",
+//     });
+//   });
+// };
 
 exports.deleteProduct = (req, res) => {
-  let product = req.product;
-  product.remove((err, deletedProduct) => {
-    if (err) {
-      return res.status(400).json({
-        error: "Failed to delete the product",
-      });
+  try {
+    let product = req.product;
+    if (!product) {
+      console.log("PRODUCT------------  ");
+
+      return res.send("No product Found");
     }
-    res.json({
-      message: "Deletion Success",
+    console.log("PRODUCT------------  ");
+    product.remove((err, removedProduct) => {
+      if (err || !removedProduct) {
+        return res.status(400).json({
+          errorMessage: "Failed to delete the product!",
+        });
+      }
+      res.json({
+        message: `${removedProduct.name} Deleted Successfully`,
+        removedProduct,
+      });
     });
-  });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 // update controllers
@@ -135,21 +160,29 @@ exports.updateProduct = (req, res) => {
 
 //product listing
 exports.getAllProducts = (req, res) => {
-  let limit = req.query.limit ? parseInt(req.query.limit) : 8;
-  let sortBy = req.query.sortBy ? req.query.sortBy : "_id";
-  Product.find()
-    .select("-photo")
-    .populate("category")
-    .limit(limit)
-    .sort([[sortBy, "asc"]])
-    .exec((err, products) => {
-      if (err) {
-        return res.status(400).json({
-          error: "No product found",
-        });
-      }
-      res.json(products);
-    });
+  // let limit = req.query.limit ? parseInt(req.query.limit) : 8;
+  // let sortBy = req.query.sortBy ? req.query.sortBy : "_id";
+  // Product.find()
+  //   .select("-photo")
+  //   .populate("category")
+  //   .limit(limit)
+  //   .sort([[sortBy, "asc"]])
+  //   .exec((err, products) => {
+  //     if (err) {
+  //       return res.status(400).json({
+  //         error: "No product found",
+  //       });
+  //     }
+  //     res.json(products);
+  //   });
+  Product.find().exec((err, products) => {
+    if (err) {
+      return res.status(400).json({
+        error: "No Products found",
+      });
+    }
+    res.json(products);
+  });
 };
 
 exports.getAllUniqueCategories = (req, res) => {
